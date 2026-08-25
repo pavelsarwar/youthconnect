@@ -1,0 +1,46 @@
+name: Equalize Campaign Frame Cards
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/equalize-campaign-frame-cards.yml']
+permissions:
+  contents: write
+jobs:
+  equalize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Make editor cards equal height on desktop
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('campaign-frame/index.html')
+          s=p.read_text(encoding='utf-8')
+          css='''
+@media(min-width:1141px){
+  .grid{align-items:stretch}
+  .preview-card,.controls{height:100%}
+  .controls{display:flex;flex-direction:column}
+  .controls .frame-note{margin-top:auto}
+}
+@media(max-width:1140px){
+  .grid{align-items:start}
+  .preview-card,.controls{height:auto}
+  .controls{display:block}
+}
+'''
+          if '@media(min-width:1141px){\n  .grid{align-items:stretch}' not in s:
+              s=s.replace('</style>',css+'</style>',1)
+          p.write_text(s,encoding='utf-8')
+          PY
+      - name: Commit
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add campaign-frame/index.html
+          if ! git diff --cached --quiet; then
+            git commit -m 'Match Campaign Frame card heights on desktop'
+            git push
+          fi
