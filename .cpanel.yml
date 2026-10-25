@@ -31,4 +31,6 @@ deployment:
     - /bin/cp -R volunteer $DEPLOYPATH
     - /bin/cp -R partner $DEPLOYPATH
     - /bin/cp -R privacy-policy $DEPLOYPATH
+    - /bin/cp sitemap.xml $DEPLOYPATH
+    - /bin/cp robots.txt $DEPLOYPATH
     - /bin/cp .htaccess $DEPLOYPATH
