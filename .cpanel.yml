@@ -14,6 +14,8 @@ deployment:
     - /bin/cp events-config.js $DEPLOYPATH
     - /bin/cp events-page.js $DEPLOYPATH
     - /bin/cp events.js $DEPLOYPATH
+    - /bin/cp instagram-feed.php $DEPLOYPATH
+    - /bin/cp instagram-gallery.js $DEPLOYPATH
     - /bin/cp campaigns.html $DEPLOYPATH
     - /bin/cp initiatives.html $DEPLOYPATH
     - /bin/cp campaign-menstrual-health.html $DEPLOYPATH
