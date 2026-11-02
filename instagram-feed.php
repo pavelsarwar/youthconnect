@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 header('Content-Type: application/json; charset=utf-8');
-header('Cache-Control: public, max-age=900');
+header('Cache-Control: no-store, max-age=0');
 header('X-Content-Type-Options: nosniff');
 $configPath = '/home/youthhub/ycf-instagram-config.php';
 $config = is_file($configPath) ? require $configPath : [];
@@ -13,7 +13,7 @@ if (!$token || !preg_match('/^[0-9]+$/', $userId)) {
     exit;
 }
 $cache = sys_get_temp_dir().'/ycf_ig_'.hash('sha256', $userId).'.json';
-if (is_file($cache) && time() - filemtime($cache) < 1800) {
+if (is_file($cache) && time() - filemtime($cache) < 300) {
     readfile($cache);
     exit;
 }
@@ -26,7 +26,7 @@ $status = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
 curl_close($ch);
 $data = $body ? json_decode($body, true) : null;
 if ($status !== 200 || !is_array($data) || !isset($data['data'])) {
-    if (is_file($cache)) { readfile($cache); exit; }
+    // Do not serve stale signed CDN URLs when the Graph API is unavailable.
     http_response_code(502);
     echo json_encode(['items'=>[], 'message'=>'Instagram photos are temporarily unavailable.']);
     exit;
