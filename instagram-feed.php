@@ -26,9 +26,13 @@ $status = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
 curl_close($ch);
 $data = $body ? json_decode($body, true) : null;
 if ($status !== 200 || !is_array($data) || !isset($data['data'])) {
-    // Do not serve stale signed CDN URLs when the Graph API is unavailable.
+    // Log a redacted API failure for server administrators; never log the access token or request URL.
+    $apiError = is_array($data) ? ($data['error'] ?? []) : [];
+    $apiCode = is_array($apiError) && isset($apiError['code']) && is_numeric($apiError['code']) ? (int)$apiError['code'] : null;
+    $apiSubcode = is_array($apiError) && isset($apiError['error_subcode']) && is_numeric($apiError['error_subcode']) ? (int)$apiError['error_subcode'] : null;
+    error_log('YCF Instagram feed API failed: HTTP '.$status.'; code '.($apiCode ?? 'unknown').'; subcode '.($apiSubcode ?? 'unknown'));
     http_response_code(502);
-    echo json_encode(['items'=>[], 'message'=>'Instagram photos are temporarily unavailable.']);
+    echo json_encode(['items'=>[], 'message'=>'Instagram photos are temporarily unavailable.', 'diagnostic'=>['http_status'=>$status, 'api_code'=>$apiCode, 'api_subcode'=>$apiSubcode]]);
     exit;
 }
 $items = [];
