@@ -28,6 +28,11 @@
       image.alt = item.caption ? item.caption.slice(0, 110) : 'Youth Connect Foundation Instagram photo';
       image.loading = 'lazy';
       image.decoding = 'async';
+      image.addEventListener('error', () => {
+        image.removeAttribute('src');
+        image.alt = 'Instagram photo unavailable — open the post on Instagram';
+        a.classList.add('ig-image-unavailable');
+      }, {once:true});
       const overlay = document.createElement('span');
       overlay.className = 'ig-overlay';
       overlay.innerHTML = '<i class="fa-brands fa-instagram" aria-hidden="true"></i><span>View on Instagram</span>';
@@ -41,8 +46,11 @@
 
   button.addEventListener('click', renderNext);
 
-  fetch('../instagram-feed.php', {credentials:'omit'})
+  const loadFeed = (retry = false) => fetch('../instagram-feed.php' + (retry ? '?refresh=' + Date.now() : ''), {credentials:'omit', cache:'no-store'})
     .then(r => { if (!r.ok) throw Error('Feed unavailable'); return r.json(); })
+    .catch(error => retry ? Promise.reject(error) : new Promise(resolve => setTimeout(resolve, 800)).then(() => loadFeed(true)));
+
+  loadFeed()
     .then(data => {
       const source = Array.isArray(data.items) ? data.items : [];
       items = source.filter(item => {
